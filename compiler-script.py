@@ -13,40 +13,78 @@ CONN_PARAMS = {
   'database': 'control_point'
 }
 
-while True:
-    try:
-        print "Connecting to db"
-        connection = mysql.connector.connect(buffered=True, **CONN_PARAMS)
-        select_cursor = connection.cursor()
+def connect_to_db(conn_params):
+    while True:
+        try:
+            print "Connecting to db"
+            connection = mysql.connector.connect(buffered=True, **conn_params)
+            return connection
+        except mysql.connector.errors.InterfaceError:
+            print "Couldn't connect to database. Retrying..."
+            sleep(1)
 
-        query = 'SELECT id, plate, submitted FROM plate_readings'
-        select_cursor.execute(query)
-        results = select_cursor.fetchall()
+def fetch_plates(connection):
+    select_cursor = connection.cursor()
+    query = 'SELECT id, plate, submitted FROM plate_readings'
+    select_cursor.execute(query)
+    results = select_cursor.fetchall()
 
-        for (row_id, plate, submitted) in results:
+    select_cursor.close()
 
-            body = {
-                'plate_number': plate,
-                'speed': 0,
-                'event_time': submitted
-            }
+    return results
 
-            response = requests.post(API_COMPILER_ENDPOINT, data=body, headers={'Authorization': 'Bearer {0}'.format(CLIENT_SECRET)})
+def generate_post_body(result_row):
+    row_id, plate, submitted = result_row
 
-            if response.status_code == 201:
-                print "Plate {0}: [201]".format(plate)
+    body = {
+        'plate_number': plate,
+        'speed': 0,
+        'event_time': submitted
+    }
 
-                delete_cursor = connection.cursor()
-                delete_query = 'DELETE FROM plate_readings WHERE id=' + str(row_id)
-                delete_cursor.execute(delete_query)
-                connection.commit()
-                delete_cursor.close()
+    return body
 
-            else:
-                print "Should retry"
+def post_plate(body, on_success, *args):
+    response = post_with_retry(data=body)
 
-        select_cursor.close()
-        connection.close()
-    except mysql.connector.errors.InterfaceError:
-        print "Couldn't connect to database. Retrying..."
-    sleep(1)
+    if response.status_code == 201:
+        print_post_info('succeeded', response.status_code, plate)
+
+        on_success(*args)
+    else:
+        print_post_info('failed', response.status_code, plate)
+
+def post_with_retry(data):
+    while True:
+        try:
+            response = requests.post(API_COMPILER_ENDPOINT, data=data, headers={'Authorization': CLIENT_SECRET})
+            return response
+        except requests.exceptions.ConnectionError:
+            print "Post failed. Retrying..."
+
+def print_post_info(status, code, plate):
+    print "Post {0}!".format(status)
+    print "    - Code: {0}".format(code)
+    print "    - Plate: {0}".format(plate)
+
+def delete_plate_from_db(connection, plate_id):
+    delete_cursor = connection.cursor()
+    delete_query = 'DELETE FROM plate_readings WHERE id=' + str(plate_id)
+    delete_cursor.execute(delete_query)
+    connection.commit()
+    delete_cursor.close()
+
+def main():
+    connection = connect_to_db(CONN_PARAMS)
+
+    while True:
+        results = fetch_plates(connection)
+
+        for result_row in results:
+            body = generate_post_body(result_row)
+            post_plate(body, delete_plate_from_db, connection, row_id)
+
+    connection.close()
+
+if __name__ == '__main__':
+    main()
