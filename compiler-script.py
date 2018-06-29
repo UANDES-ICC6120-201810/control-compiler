@@ -16,11 +16,12 @@ CONN_PARAMS = {
 def connect_to_db(conn_params):
     while True:
         try:
-            print "Connecting to db"
+            print "[Info] Connecting to db"
             connection = mysql.connector.connect(buffered=True, **conn_params)
+            print "[Info] Connection successful!"
             return connection
         except mysql.connector.errors.InterfaceError:
-            print "Couldn't connect to database. Retrying..."
+            print "[Error] Couldn't connect to database. Retrying..."
             sleep(1)
 
 def fetch_plates(connection):
@@ -60,12 +61,12 @@ def post_with_retry(data):
             response = requests.post(API_COMPILER_ENDPOINT, data=data, headers={'Authorization': CLIENT_SECRET})
             return response
         except requests.exceptions.ConnectionError:
-            print "Post failed. Retrying..."
+            print "[Error] Post failed. Retrying..."
 
 def print_post_info(status, code, plate):
-    print "Post {0}!".format(status)
-    print "    - Code: {0}".format(code)
-    print "    - Plate: {0}".format(plate)
+    print "[Info] Post {0}!".format(status)
+    print "[Info] Code: {0}".format(code)
+    print "[Info] Plate: {0}".format(plate)
 
 def delete_plate_from_db(connection, plate_id):
     delete_cursor = connection.cursor()
@@ -81,6 +82,8 @@ def main():
         results = fetch_plates(connection)
 
         for result_row in results:
+            row_id = result_row[0]
+
             body = generate_post_body(result_row)
             post_plate(body, delete_plate_from_db, connection, row_id)
 
