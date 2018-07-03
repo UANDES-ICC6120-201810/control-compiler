@@ -4,7 +4,7 @@ from time import sleep
 
 API_HOST = 'http://proyectozapo.herokuapp.com/api/v1'
 API_COMPILER_ENDPOINT = '{0}/vehicle_event'.format(API_HOST)
-CLIENT_SECRET = 'eyJhbGciOiJIUzI1NiJ9.eyJidXNfc3RvcF9jb2RlIjoiUEMxNjQifQ.lzAAAxhzXbFmjLLbgV5mIvTSt9l7417pzpmzP0YkqCM'
+CLIENT_SECRET = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJidXNfc3RvcF9jb2RlIjoiUEMxNjQifQ.lzAAAxhzXbFmjLLbgV5mIvTSt9l7417pzpmzP0YkqCM'
 
 CONN_PARAMS = {
   'user': 'ALPR',
@@ -49,7 +49,7 @@ def post_plate(body, on_success, *args):
     response = post_with_retry(data=body)
 
     if response.status_code == 201:
-        print_post_info('succeeded', response.status_code, plate)
+        print_post_info('succeeded', response.status_code, body['plate_number'])
 
         on_success(*args)
     else:
@@ -76,9 +76,9 @@ def delete_plate_from_db(connection, plate_id):
     delete_cursor.close()
 
 def main():
-    connection = connect_to_db(CONN_PARAMS)
-
     while True:
+        connection = connect_to_db(CONN_PARAMS)
+
         results = fetch_plates(connection)
 
         for result_row in results:
@@ -87,7 +87,7 @@ def main():
             body = generate_post_body(result_row)
             post_plate(body, delete_plate_from_db, connection, row_id)
 
-    connection.close()
+        connection.close()
 
 if __name__ == '__main__':
     main()
