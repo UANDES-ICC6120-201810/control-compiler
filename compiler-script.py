@@ -78,6 +78,7 @@ def delete_plate_from_db(connection, plate_id):
 
 def main():
     while True:
+        sleep(10)
         connection = connect_to_db(CONN_PARAMS)
 
         results = fetch_plates(connection)
@@ -93,7 +94,6 @@ def main():
             post_plate(body, delete_plate_from_db, connection, row_id)
 
         connection.close()
-        sleep(10)
 
 if __name__ == '__main__':
     main()
