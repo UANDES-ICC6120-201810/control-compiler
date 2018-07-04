@@ -82,6 +82,10 @@ def main():
 
         results = fetch_plates(connection)
 
+        if len(results) == 0:
+            print "[Info] No plates in database"
+            continue
+
         for result_row in results:
             row_id = result_row[0]
 
