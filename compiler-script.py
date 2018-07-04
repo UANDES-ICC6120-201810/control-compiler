@@ -89,6 +89,7 @@ def main():
             post_plate(body, delete_plate_from_db, connection, row_id)
 
         connection.close()
+        sleep(10)
 
 if __name__ == '__main__':
     main()
