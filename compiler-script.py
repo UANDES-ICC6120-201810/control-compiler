@@ -4,7 +4,7 @@ from time import sleep
 
 API_HOST = 'http://proyectozapo.herokuapp.com/api/v1'
 API_COMPILER_ENDPOINT = '{0}/vehicle_event'.format(API_HOST)
-CLIENT_SECRET = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJidXNfc3RvcF9jb2RlIjoiUEMxNjQifQ.lzAAAxhzXbFmjLLbgV5mIvTSt9l7417pzpmzP0YkqCM'
+CLIENT_SECRET = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhY2Nlc3NfcG9pbnRfaWQiOjEwLCJleHAiOjE1Mjg5MjU5NDV9.wqQ73Z8ts0sXo10NcUb7xzN3CUD1claDk-2aZ2ofheU'
 
 CONN_PARAMS = {
   'user': 'ALPR',
