@@ -45,8 +45,9 @@ def generate_post_body(result_row):
 
     return body
 
-def post_plate(plate, on_success, *args):
+def post_plate(body, on_success, *args):
     response = post_with_retry(data=body)
+    plate = body['plate_number']
 
     if response.status_code == 201:
         print_post_info('succeeded', response.status_code, plate)
@@ -85,7 +86,7 @@ def main():
             row_id = result_row[0]
 
             body = generate_post_body(result_row)
-            post_plate(body['plate_number'], delete_plate_from_db, connection, row_id)
+            post_plate(body, delete_plate_from_db, connection, row_id)
 
         connection.close()
 
