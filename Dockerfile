@@ -14,4 +14,4 @@ RUN apt-get update \
     && pip install mysql-connector \
                    requests
 
-CMD python /root/compiler-script.py
+CMD python -u /root/compiler-script.py
